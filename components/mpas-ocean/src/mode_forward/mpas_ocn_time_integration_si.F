@@ -88,6 +88,7 @@ module ocn_time_integration_si
    real (kind=RKIND) :: total_num_cells,mean_num_cells
    real (kind=RKIND) :: R1_alpha1_g,alpha1,alpha2,crit_main
    integer :: nPrecVec, si_opt, si_ismf, ncpus
+   integer :: ssh_sal_on
 
 !***********************************************************************
 
@@ -475,7 +476,7 @@ module ocn_time_integration_si
 
            call mpas_pool_get_array(statePool, 'highFreqThickness', highFreqThicknessNew, 2)
 
-           call ocn_tend_vel(tendPool, statePool, forcingPool, stage1_tend_time, dt)
+           call ocn_tend_vel(domain, tendPool, statePool, forcingPool, stage1_tend_time, dminfo, dt)
 
            block => block % next
          end do
@@ -703,7 +704,8 @@ module ocn_time_integration_si
                nCells = nCellsPtr
                do iCell = 1, nCells
                  sshSubcycleCurWithTides(iCell) = sshSubcycleCur(iCell) - tidalPotentialEta(iCell) &
-                                                - config_self_attraction_and_loading_beta * sshSubcycleCur(iCell)
+                                                - ssh_sal_on * ssh_sal(iCell) &
+                                                - (1 - ssh_sal_on) * config_self_attraction_and_loading_beta * sshSubcycleCur(iCell)
                end do
 
                call mpas_pool_get_array(forcingPool, 'sshSubcycleCurWithTides', sshSubcycleCur)
@@ -3336,6 +3338,12 @@ module ocn_time_integration_si
       call mpas_timer_stop("preconditioning matrix build")
 
    !--------------------------------------------------------------------
+      if (config_use_self_attraction_loading) then
+         ! set ssh_sal_on to 1
+         ssh_sal_on = 1
+      else
+         ssh_sal_on = 0
+      endif
 
    end subroutine ocn_time_integration_si_init!}}}
 
