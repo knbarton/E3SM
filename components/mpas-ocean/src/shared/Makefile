@@ -207,8 +207,7 @@ mpas_ocn_wetting_drying.o: mpas_ocn_diagnostics.o mpas_ocn_gm.o mpas_ocn_diagnos
 
 mpas_ocn_tidal_potential_forcing.o: mpas_ocn_constants.o mpas_ocn_config.o
 
-mpas_vel_ocn_self_attraction_loading.o: mpas_ocn_constants.o mpas_ocn_config.o
-#	$(FC) $(CPPFLAGS) $(FFLAGS) ../SHTNS/libshtns.a -L../global/homes/k/knbarton/repos/repos/MPAS-Model/SAL/src/core_ocean/SHTNS/lib -c $*.f90 $(CPPINCLUDES) $(FCINCLUDES)
+mpas_ocn_vel_self_attraction_loading.o: mpas_ocn_constants.o mpas_ocn_config.o
 
 mpas_ocn_vel_pressure_grad.o: mpas_ocn_constants.o
 
@@ -221,7 +220,7 @@ clean:
 	$(RM) $@ $*.mod
 ifeq "$(GEN_F90)" "true"
 	$(CPP) $(CPPFLAGS) $(CPPINCLUDES) $< > $*.f90
-	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) ../SHTNS/lib/libshtns.a -L../global/homes/k/knbarton/repos/repos/MPAS-Model/SAL/src/core_ocean/SHTNS/lib
+	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -L../global/homes/k/knbarton/repos/repos/MPAS-Model/SAL/src/core_ocean/SHTNS/lib
 else
-	$(FC) $(CPPFLAGS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) ../SHTNS/libshtns.a -L../global/homes/k/knbarton/repos/repos/MPAS-Model/SAL/src/core_ocean/SHTNS/lib
+	$(FC) $(CPPFLAGS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -L../global/homes/k/knbarton/repos/repos/MPAS-Model/SAL/src/core_ocean/SHTNS/lib
 endif

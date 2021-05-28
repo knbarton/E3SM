@@ -100,7 +100,7 @@ libshtns: libfftw
     		fi \
         fi \
     else \
-    		(echo "Missing core_ocean/SHTNS/.git, did you forget to 'git submodule update --init --recursive' ?"; exit 1) \
+    		(echo "Missing SHTNS/.git, did you forget to 'git submodule update --init --recursive' ?"; exit 1) \
 	fi
 
 libfftw:
@@ -113,7 +113,7 @@ libfftw:
     		fi \
         fi \
 	else \
-		(echo "Missing core_ocean/SHTNS/.git, did you forget to 'git submodule update --init --recursive' ?"; exit 1) \
+		(echo "Missing SHTNS/.git, did you forget to 'git submodule update --init --recursive' ?"; exit 1) \
     fi
 
 shared: libcvmix libBGC libgotm libshtns libfftw
