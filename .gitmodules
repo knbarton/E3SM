@@ -49,3 +49,6 @@
 [submodule "components/mpas-ocean/src/gotm"]
 	path = components/mpas-ocean/src/gotm
 	url = git@github.com:E3SM-Project/GOTMcode.git
+[submodule "components/mpas-ocean/src/SHTNS"]
+	path = components/mpas-ocean/src/SHTNS
+	url = https://bitbucket.org/nschaeff/shtns.git
