@@ -294,10 +294,6 @@ module ocn_forward_mode
       ! Initialize core
       !
 
-      ! SAL init requires nCellsOwned which is created in meshCreate
-      call ocn_vel_self_attraction_loading_init(domain,err_tmp)
-      ierr = ior(ierr, err_tmp)
-
       timeStep = mpas_get_clock_timestep(domain % clock, ierr=err_tmp)
       call mpas_get_timeInterval(timeStep, dt=dt)
 
@@ -353,6 +349,10 @@ module ocn_forward_mode
       call mpas_reset_clock_alarm(domain % clock, 'salinityDataReadAlarm', ierr=err_tmp)
 
       endif
+
+      ! Initialize self-attraction and loading
+      call ocn_vel_self_attraction_loading_init(domain,err_tmp)
+      ierr = ior(ierr, err_tmp)
 
       !-----------------------------------------------------------------
       ! Complete all remaining module initializations.

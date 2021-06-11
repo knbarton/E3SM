@@ -24,6 +24,7 @@ module ocn_tendency
    use mpas_pool_routines
    use mpas_constants
    use mpas_timer
+   use mpas_timekeeping
    use mpas_threading
    use mpas_dmpar
    use ocn_diagnostics
@@ -414,10 +415,10 @@ contains
                                thermExpCoeff, salineContractCoeff, &
                                tendVel, err)
 
-      ! compute ssh addition due to self-attraction and loading, must be calculated before tidal potential
-      call ocn_compute_self_attraction_loading(forcingPool, dminfo, ssh, err)
-      if (config_use_self_attraction_loading) then
-          call mpas_dmpar_field_halo_exch(domain, 'ssh_sal')
+      ! Compute ssh additions due to self-attraction and loading
+      if(mpas_is_alarm_ringing(domain % clock, 'salComputeAlarm', ierr=err)) then 
+          call ocn_compute_self_attraction_loading(domain, forcingPool, dminfo, ssh, err)
+          call mpas_reset_clock_alarm(domain % clock, 'salComputeAlarm', ierr=err)
       endif
 
       ! Add tidal potential (if needed) 

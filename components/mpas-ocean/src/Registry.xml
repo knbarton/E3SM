@@ -760,11 +760,15 @@
 					description="Location of the file containing the interpolation weights for transformation from a Gaussian Grid to the MPAS mesh."
 					possible_values="Any file name string"
 		/>
-		<nml_option name="nLatitude" type="integer" default_value="128" units="unitless"
+	<nml_option name="config_self_attraction_loading_compute_interval" type="character" default_value="0000-00-00_00:30:00" units="unitless"
+					description="Interval for computing full SAL."
+					possible_values="'YYYY-MM-DD_HH:MM:SS'"
+		/>
+		<nml_option name="config_nLatitude" type="integer" default_value="128" units="unitless"
 					description="Numer of latitude points in the Gaussian Grid."
 					possible_values="Any positive integer value."
 		/>
-		<nml_option name="nLongitude" type="integer" default_value="256" units="unitless"
+		<nml_option name="config_nLongitude" type="integer" default_value="256" units="unitless"
 					description="Numer of longitude points in the Gaussian Grid."
 					possible_values="Any positive integer value."
 		/>

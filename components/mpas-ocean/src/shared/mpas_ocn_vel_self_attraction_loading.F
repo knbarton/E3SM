@@ -104,7 +104,7 @@ contains
 !
 !-----------------------------------------------------------------------
 
-    subroutine ocn_compute_self_attraction_loading(forcingPool, dminfo, ssh, err)!{{{
+    subroutine ocn_compute_self_attraction_loading(domain, forcingPool, dminfo, ssh, err)!{{{
 
         !-----------------------------------------------------------------
         !
@@ -119,6 +119,7 @@ contains
         ! input/output variables
         !
         !-----------------------------------------------------------------
+        type (domain_type), intent(inout) :: domain !< Input/Output: domain information
         type (mpas_pool_type), intent(inout) :: forcingPool 
         
         !-----------------------------------------------------------------
@@ -135,11 +136,13 @@ contains
         !
         !-----------------------------------------------------------------
         
+        ! SAL variables
         real (kind=RKIND), dimension(:), pointer :: ssh_gg
         real (kind=RKIND), dimension(:), pointer :: eta_SAL
-        integer :: iCell, ilm
+        ! MPI Variables
+        integer :: iCell, ilm, curProc
         real (kind=RKIND), dimension(:), allocatable :: globalArray, gatheredArray
-        integer :: curProc
+        ! Alarm variables
 
         call mpas_timer_start('SAL Calculation')
 
@@ -149,9 +152,8 @@ contains
             return
         endif
 
-        call MPI_COMM_RANK( dminfo % comm, curProc, err)
-
         ! Allocate globalArray and gatheredArray only on process 0
+        call MPI_COMM_RANK( dminfo % comm, curProc, err)
         if (curProc.eq.0) then
             allocate(globalArray(nCellsGlobal), gatheredArray(nCellsGlobal))
         endif
@@ -199,6 +201,9 @@ contains
             deallocate(globalArray, gatheredArray)
         endif
 
+        ! Perform Halo exchange update
+        call mpas_dmpar_field_halo_exch(domain,'ssh_sal')
+
         call mpas_timer_stop('SAL Calculation')
 
     end subroutine ocn_compute_self_attraction_loading!}}}
@@ -217,26 +222,12 @@ contains
 !
 !-----------------------------------------------------------------------
 
-!
-!> \brief   Initializes ocean tidal protential forcing module.
-!> \author  Kristin Barton
-!> \date    August 2020
-!> \details
-!>  This routine initializes the ocean self-attraction and loading module 
-!>  and variables.
-!
-!-----------------------------------------------------------------------
-
     subroutine ocn_vel_self_attraction_loading_init(domain,err)!{{{
 
         type (domain_type), intent(inout) :: domain
         integer, intent(out) :: err !< Output: error flag
        
         ! Config variables
-        logical, pointer :: config_use_self_attraction_loading
-        character(len=StrKIND), pointer :: config_load_Love_file
-        character(len=StrKIND), pointer :: config_mpas_to_grid_weights_file 
-        character(len=StrKIND), pointer :: config_grid_to_mpas_weights_file 
         type (block_type), pointer :: block_ptr
         type (mpas_pool_type), pointer :: forcingPool, meshPool
        
@@ -263,12 +254,14 @@ contains
         integer, pointer ::  nCells
         integer, dimension(:), pointer :: indexToCellID
         integer :: iProc, l, ilm, nProcs
+
+        ! Alarm variables
+        type (MPAS_Time_Type) :: alarmTime
+        type (MPAS_TimeInterval_type) :: alarmTimeStep
         
         call mpas_timer_start('SAL Init')
 
         err = 0
-        
-        call mpas_pool_get_config(ocnConfigs, 'config_use_self_attraction_loading', config_use_self_attraction_loading)
         
         selfAttractionLoadingOn= .false.
         if (config_use_self_attraction_loading) then
@@ -281,8 +274,9 @@ contains
         call mpas_pool_get_config(ocnConfigs, 'config_load_Love_file', config_load_Love_file)
         call mpas_pool_get_config(ocnConfigs, 'config_mpas_to_grid_weights_file', config_mpas_to_grid_weights_file)
         call mpas_pool_get_config(ocnConfigs, 'config_grid_to_mpas_weights_file', config_grid_to_mpas_weights_file)
-        call mpas_pool_get_config(ocnConfigs, 'nLatitude', nlat)
-        call mpas_pool_get_config(ocnConfigs, 'nLongitude', nphi)
+        call mpas_pool_get_config(ocnConfigs, 'config_self_attraction_loading_compute_interval', config_self_attraction_loading_compute_interval)
+        call mpas_pool_get_config(ocnConfigs, 'config_nLatitude', nlat)
+        call mpas_pool_get_config(ocnConfigs, 'config_nLongitude', nphi)
 
         block_ptr => domain % blocklist
         do while ( associated( block_ptr ) )
@@ -291,6 +285,13 @@ contains
             block_ptr => block_ptr % next
         end do
         call mpas_pool_get_array(meshPool, 'indexToCellID', indexToCellID)
+
+        ! Setup Alarm for SAL
+        alarmTime = mpas_get_clock_time(domain % clock, MPAS_START_TIME, ierr=err)
+        call mpas_set_timeInterval(alarmTimeStep, timeString = &
+              config_self_attraction_loading_compute_interval, ierr = err)
+        call mpas_add_clock_alarm(domain % clock, 'salComputeAlarm', alarmTime, &
+              alarmTimeInterval=alarmTimeStep, ierr=err)
 
         ! Begin MPI portion
         call MPI_COMM_RANK( domain % dminfo % comm, curProc, err)
