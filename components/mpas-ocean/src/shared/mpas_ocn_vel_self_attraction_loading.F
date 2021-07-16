@@ -100,7 +100,8 @@ contains
 !> \author  Kristin Barton
 !> \date    August 2020
 !> \details
-!>  This routine computes the self-attraction and loading
+!>  This routine computes the sea surface height perturbation due to
+!>     self-attraction and loading. 
 !
 !-----------------------------------------------------------------------
 
@@ -138,11 +139,9 @@ contains
         
         ! SAL variables
         real (kind=RKIND), dimension(:), pointer :: ssh_gg
-        real (kind=RKIND), dimension(:), pointer :: eta_SAL
         ! MPI Variables
         integer :: iCell, ilm, curProc
         real (kind=RKIND), dimension(:), allocatable :: globalArray, gatheredArray
-        ! Alarm variables
 
         call mpas_timer_start('SAL Calculation')
 
@@ -198,7 +197,7 @@ contains
                     ssh_sal, nCellsAll, MPI_DOUBLE, 0, dminfo % comm, err) 
 
         if (curProc.eq.0) then
-            deallocate(globalArray, gatheredArray)
+            deallocate(globalArray, gatheredArray, ssh_gg)
         endif
 
         ! Perform Halo exchange update
@@ -322,7 +321,7 @@ contains
         call MPI_GATHERV( indexToCellID, nCellsOwned, MPI_INTEGER, indexToCellIDGathered, &
                 nCellsPerProc, nCellsDisplacement, MPI_INTEGER, 0, domain % dminfo % comm, err)
      
-        ! SAL calculations only need to be initialized on process 1
+        ! SAL calculations only need to be initialized on process 0
         if (curProc.eq.0) then
             ! Set variables for file locations
             loadLoveFile = trim(config_load_Love_file)
@@ -427,7 +426,7 @@ contains
 !> \author  Kristin Barton
 !> \date    August 2020
 !> \details
-!>  This routine checks contains the sparse matrix multiplication
+!>  This routine contains the sparse matrix multiplication
 !>    algorithm to interpolate between MPAS and Gaussian Grid
 !
 !-----------------------------------------------------------------------
@@ -463,9 +462,6 @@ contains
 !> \author  Kristin Barton
 !> \date    February 2021
 !> \details
-!>  This routine checks contains the values for the load Love numbers.
-!>  It extracts the correct values and multiplies them by the constants 
-!>     used in the SAL calculation.
 !>  Modified by Kristin Barton from routine Written by K. Quinn (March 
 !>     2010) and modifed by M. Schindelegger (May 2017) 
 !> 	This program contains load Love numbers Wang et al. (2012):
@@ -500,7 +496,7 @@ contains
         enddo
         close(11)
 
-        ! Convert from CM to CF
+        ! Convert from center of mass (CM) to center of frame (CF)
         H1 = H(2)
         L1 = L(2)
         K1 = K(2)
