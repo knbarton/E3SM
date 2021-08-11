@@ -1471,6 +1471,7 @@
 			<var name="fEdge"/>
 			<var name="fVertex"/>
 			<var name="fCell"/>
+			<var name="bed_elevation"/>
 		</stream>
 
 		<stream name="output_init"
@@ -2251,6 +2252,9 @@
 		/>
 		<var name="fCell" type="real" dimensions="nCells" units="s^{-1}"
 			 description="Coriolis parameter at cell centers."
+		/>
+		<var name="bed_elevation" type="real" dimensions="nCells" units="m"
+			 description="Depth of the bottom of the ocean. Given as negative distance from sea level. Used as input to replace topography input file."
 		/>
 		<var name="bottomDepth" type="real" dimensions="nCells" units="m"
 			 description="Depth of the bottom of the ocean. Given as a positive distance from sea level."
