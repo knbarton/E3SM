@@ -175,7 +175,7 @@ contains
         call mpas_pool_get_subpool(block_ptr % structs, 'diagnostics',diagnosticsPool)
 
         call mpas_pool_get_dimension(meshPool, 'nCellsSolve',nCellsSolve)
-        call mpas_pool_get_dimension(meshPool, 'nCellsAll',nCellsAll)
+        call mpas_pool_get_dimension(meshPool, 'nCells',nCellsAll)
         call mpas_pool_get_dimension(meshPool, 'nEdgesArray',nEdgesArray)
         call mpas_pool_get_config(meshPool, 'sphere_radius', sphere_radius)
 
