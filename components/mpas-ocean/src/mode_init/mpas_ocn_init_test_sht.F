@@ -283,7 +283,8 @@ contains
         call ocn_vel_self_attraction_loading_init(domain,err)
         do i = 1,config_test_sht_n_iterations
           call mpas_log_write('Iteration = $i',intArgs=(/i/))
-          call ocn_compute_self_attraction_loading(domain, forcingPool, domain % dminfo, ssh, err)
+          call ocn_compute_self_attraction_loading(domain, forcingPool, domain % dminfo, &
+                                      ssh, surfacePressure, err)
         enddo
 
         ! Compute gradient
