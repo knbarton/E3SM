@@ -678,7 +678,7 @@ contains
 !>  Except for bottom drag coefficient, routine should be identifcal to
 !>  ocn_vel_vmix_tend_implicit above.  Cd uses various drag laws: 
 !>  (a) Mannings' n values for Cd=g*n^2*h^{-1/3}, 
-!>  (b) log law-of-the-wall for Cd=(kappa/log(0.5*h/z0))^2.
+!>  (b) log law-of-the-wall for Cd=(\frac{kappa}{log(0.5*\frac{h}{z0})})^2.
 !
 !-----------------------------------------------------------------------
 
@@ -892,7 +892,7 @@ contains
 
    !--------------------------------------------------------------------
 
-   end subroutine ocn_vel_vmix_tend_implicit_spatially_variable_mannings!}}}
+   end subroutine ocn_vel_vmix_tend_implicit_spatially_variable_law!}}}
 
 
 !***********************************************************************
