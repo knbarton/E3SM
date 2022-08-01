@@ -86,7 +86,7 @@ contains
       type (mpas_pool_type), pointer :: meshPool, statePool
       type (mpas_pool_type), pointer :: forcingPool, diagnosticsPool
 
-      integer, pointer :: nCellsSolve
+      integer, pointer :: nCellsSolve, nCellsAll
       real (kind=RKIND), dimension(:), pointer :: lonCell, latCell
       real (kind=RKIND), dimension(:), pointer :: xCell, yCell, zCell
       real (kind=RKIND), dimension(:), pointer :: ssh, ssh_sal, ssh_sal_grad
@@ -124,7 +124,7 @@ contains
       real (kind=RKIND) :: sinlat_highres,sinlat_lowres,sinlon_highres,sinlon_lowres
       real (kind=RKIND) :: trans_width,trans_start,x,w1,w2,rad
       real (kind=RKIND), allocatable :: XCurve(:), YCurve(:), ZCurve(:), lonCurve(:), latCurve(:)
-
+      real (kind=RKIND), allocatable :: surfacePressure(:)
 
       character (len=StrKIND), pointer :: config_init_configuration
 
@@ -175,6 +175,7 @@ contains
         call mpas_pool_get_subpool(block_ptr % structs, 'diagnostics',diagnosticsPool)
 
         call mpas_pool_get_dimension(meshPool, 'nCellsSolve',nCellsSolve)
+        call mpas_pool_get_dimension(meshPool, 'nCellsAll',nCellsAll)
         call mpas_pool_get_dimension(meshPool, 'nEdgesArray',nEdgesArray)
         call mpas_pool_get_config(meshPool, 'sphere_radius', sphere_radius)
 
@@ -278,6 +279,8 @@ contains
 
         endif
 
+        allocate(surfacePressure(nCellsAll))
+        surfacePressure(:) = 0.0_RKIND
 
         ! Call the forward/inverse transformation, SAL scaling factors are 1.0 for init mode
         call ocn_vel_self_attraction_loading_init(domain,err)
@@ -286,6 +289,8 @@ contains
           call ocn_compute_self_attraction_loading(domain, forcingPool, domain % dminfo, &
                                       ssh, surfacePressure, err)
         enddo
+
+        deallocate(surfacePressure)
 
         ! Compute gradient
         do iEdge = 1,nEdgesArray(1)
