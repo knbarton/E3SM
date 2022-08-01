@@ -128,7 +128,9 @@ contains
 !
 !-----------------------------------------------------------------------
 
-    subroutine ocn_compute_self_attraction_loading(domain, forcingPool, dminfo, ssh, err)!{{{
+    subroutine ocn_compute_self_attraction_loading(domain, forcingPool, &
+        dminfo, ssh, surfacePressure, err)!{{{
+
 
         !-----------------------------------------------------------------
         !
@@ -137,6 +139,7 @@ contains
         !-----------------------------------------------------------------
         type (dm_info), intent(in) :: dminfo
         real (kind=RKIND), dimension(:), intent(in) :: ssh
+        real (kind=RKIND), dimension(:), intent(in) :: surfacePressure
 
         !-----------------------------------------------------------------
         !
@@ -161,6 +164,7 @@ contains
         !-----------------------------------------------------------------
 
         integer :: iCell
+        real (kind=RKIND) :: rho0gInv
 
         call mpas_timer_start('SAL Calculation')
 
@@ -170,8 +174,11 @@ contains
             return
         endif
 
+        rho0gInv = 1.0_RKIND / gravity / rho_sw
+
         do iCell = 1,nCellsAll
-          sshSmoothed(iCell) = coastalSmoothingFactor(iCell)*ssh(iCell)
+          sshSmoothed(iCell) = coastalSmoothingFactor(iCell) * ( &
+              ssh(iCell) + rho0gInv * surfacePressure(iCell) )
         enddo
 
         if (.not. config_use_parallel_self_attraction_loading) then

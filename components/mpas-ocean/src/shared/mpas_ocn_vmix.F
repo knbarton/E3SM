@@ -67,6 +67,8 @@ module ocn_vmix
    real (kind=RKIND) :: implicitBottomDragCoef
    real (kind=RKIND) :: rayleighDampingCoef, rayleighBottomDampingCoef, &
                         rayleighDepthVariable
+   real (kind=RKIND) :: roughnessBottomDragMin, roughnessBottomDragMax, &
+                        roughnessBottomDragZ0
 
 !***********************************************************************
 
@@ -663,22 +665,24 @@ contains
 
 !***********************************************************************
 !
-!  routine ocn_vel_vmix_tend_implicit_variable_mannings
+!  routine ocn_vel_vmix_tend_implicit_variable_law
 !
 !> \brief   Computes tendencies for implicit momentum vertical mixing
-!>          with spatially-variable bottom drag using Mannings friction
+!>          with spatially-variable bottom drag using either Mannings
+!>          friction or log law-of-the-wall formulations
 !> \author  Mark Petersen, Phillip J. Wolfram
 !> \date    September 2011, September 2019
 !> \details
 !>  This routine computes the tendencies for implicit vertical mixing for momentum
 !>  using computed coefficients from spatially-variable bottom drag.
 !>  Except for bottom drag coefficient, routine should be identifcal to
-!>  ocn_vel_vmix_tend_implicit above.  Cd uses Mannings' n values for the
-!>  Cd=g*n^2*h^{-1/3}.
+!>  ocn_vel_vmix_tend_implicit above.  Cd uses various drag laws: 
+!>  (a) Mannings' n values for Cd=g*n^2*h^{-1/3}, 
+!>  (b) log law-of-the-wall for Cd=(kappa/log(0.5*h/z0))^2.
 !
 !-----------------------------------------------------------------------
 
-   subroutine ocn_vel_vmix_tend_implicit_spatially_variable_mannings(forcingPool, bottomDrag, dt, & !{{{
+   subroutine ocn_vel_vmix_tend_implicit_spatially_variable_law(forcingPool, bottomDrag, dt, & !{{{
                                          kineticEnergyCell, vertViscTopOfEdge, layerThickness, &
                                          layerThickEdgeMean, normalVelocity, ssh, err)
 
@@ -751,6 +755,8 @@ contains
       integer :: iCell
 
       err = 0
+      ! Foken T. (2006). "50 years of the Monin-Obukhov similarity theory". 
+      ! Boundary-Layer Meteorology, Vol. 119, 431-447
       von_karman = 0.4_RKIND
 
       if(.not.velVmixOn) return
@@ -817,16 +823,14 @@ contains
          cell1 = cellsOnEdge(1,iEdge)
          cell2 = cellsOnEdge(2,iEdge)
 
-         ! average cell-based implicit bottom drag to edges and convert Mannings n to Cd
+         ! average cell-based implicit bottom drag to edges and convert to Cd
          if (config_use_implicit_bottom_roughness) then
-           ! NCOM's formula for bottom drag coefficient
-           ! The original formula is cb(i,j) = max(cbmin, (vonk/log(0.5*depth(i,j)/z0))**2 ))
-           ! where vonk=0.16, z0=0.001, bracketed between [0.0025, 0.1]
-           ! The constant below is 250 = 0.5*0.5/z0 with the extra 0.5 from
-           ! averaging the two bottomDepth cells.
-           implicitCd = max(0.0025_RKIND, &
-                        min(0.1_RKIND, &
-                          0.16_RKIND/(log(250.0_RKIND*(bottomDepth(cell1)+bottomDepth(cell2))))**2 ))
+           ! log "law-of-the-wall" formulation: Cd = (kappa/log(0.5*h/z0))**2
+           ! bounded between [Cd_min, Cd_max]
+           implicitCd = (von_karman / log( 0.25_RKIND*( &
+             ssh(cell1) + bottomDepth(cell1) + &
+             ssh(cell2) + bottomDepth(cell2))/roughnessBottomDragZ0 ))**2
+           implicitCd = max(roughnessBottomDragMin, min(roughnessBottomDragMax, implicitCd))
          elseif (config_use_vegetation_drag .AND. config_use_vegetation_manning_equation) then
            implicitCd = gravity*(0.5_RKIND*(vegetationManning(cell1) + vegetationManning(cell2)))**2 * &
             (0.5_RKIND * (ssh(cell1) + ssh(cell2) + bottomDepth(cell1) + bottomDepth(cell2)))**(-1.0_RKIND/3.0_RKIND)
@@ -1199,8 +1203,8 @@ contains
           vertViscTopOfEdge, layerThickness, layerThickEdgeMean, normalVelocity, err)
       else if (config_use_implicit_bottom_drag_variable_mannings.or. &
                config_use_implicit_bottom_roughness) then
-        ! update bottomDrag via Cd=g*n^2*h^(-1/3)
-        call ocn_vel_vmix_tend_implicit_spatially_variable_mannings(forcingPool, bottomDrag, &
+        ! update bottomDrag via Mannings' or law-of-the-wall formulations
+        call ocn_vel_vmix_tend_implicit_spatially_variable_law(forcingPool, bottomDrag, &
           dt, kineticEnergyCell, &
           vertViscTopOfEdge, layerThickness, layerThickEdgeMean, normalVelocity, &
           ssh, err)
@@ -1362,6 +1366,16 @@ contains
       rayleighDepthVariable = 0.0_RKIND
       if (config_Rayleigh_damping_depth_variable) then
         rayleighDepthVariable = 1.0_RKIND
+      end if
+
+      roughnessBottomDragMin = 0.0_RKIND
+      roughnessBottomDragMax = 0.0_RKIND
+      roughnessBottomDragZ0 = 0.0_RKIND
+      
+      if (config_use_implicit_bottom_roughness) then
+          roughnessBottomDragMin = config_implicit_bottom_roughness_min
+          roughnessBottomDragMax = config_implicit_bottom_roughness_max
+          roughnessBottomDragZ0 = config_implicit_bottom_roughness_z0
       end if
 
       velVmixOn = .true.

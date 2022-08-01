@@ -427,7 +427,8 @@ contains
 #ifdef MPAS_DEBUG
           call mpas_log_write('       Computing SAL')
 #endif
-          call ocn_compute_self_attraction_loading(domain, forcingPool, dminfo, ssh, err)
+          call ocn_compute_self_attraction_loading(domain, forcingPool, &
+                                      dminfo, ssh, surfacePressure, err)
           call mpas_reset_clock_alarm(domain % clock, 'salComputeAlarm', ierr=err)
       endif
       !$acc update device(ssh_sal)
