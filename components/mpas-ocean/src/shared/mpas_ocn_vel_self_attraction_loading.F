@@ -634,7 +634,7 @@ contains
 
         ! MPI variables
         integer :: curProc
-        integer, dimension(:), pointer :: indexToCellID
+!        integer, dimension(:), pointer :: indexToCellID
         integer :: iProc, l, ilm, nProcs
 
         ! Alarm variables
@@ -811,11 +811,11 @@ contains
                 enddo
 
                 call getloadLoveNums(shtns%nlm, lvec, LoveScaling)
+
 #endif
             endif
 
         else
-
             allocate(pmn(nCellsAll),pmnm1(nCellsAll),pmnm2(nCellsAll))
 
             nOrder = config_parallel_self_attraction_loading_order
