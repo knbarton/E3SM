@@ -127,7 +127,7 @@ contains
                    kineticEnergyCell, layerThickEdgeMean, tend, err1)
       err = ior(err, err1)
 
-      call ocn_vel_forcing_topographic_wave_drag_scalar_tend(normalVelocity, &
+      call ocn_vel_forcing_topographic_wave_drag_tend(normalVelocity, &
                    tend, err1)
 
       err = ior(err, err1)

@@ -1074,13 +1074,22 @@
 					possible_values=".true. or .false."
 		/>
 		<nml_option name="config_topographic_wave_drag_scheme" type="character" default_value="JSL" units="unitless"
-					description="hich of the following three wave drag schemes to use: JSL: Jayne and St. Laurent; ZAE: Zaron and Egbert; or NYC: Nycander"
-					possible_values="JSL or ZAE or NYC"
+					description="hich of the following three wave drag schemes to use: JSL: Jayne and St. Laurent; ZAE: Zaron and Egbert; or LGF: Local generation formula"
+					possible_values="JSL or ZAE or LGF"
 		/>
 		<nml_option name="config_topographic_wave_drag_coeff" type="real" default_value="5.0e-4" units="unitless"
 					description="Dimensionless topographic wave drag coefficient, $c_{topo}$."
 					possible_values="any positive real, typically 5.0e-4"
 		/>
+		<nml_option name="config_topographic_wave_drag_cutoff_depth" type="real" default_value="500" units="m"
+					description="Specifies minimum depth at which topographic wave drag is applied"
+					possible_values="any positive real"
+		/>
+		<nml_option name="config_topographic_wave_drag_cutoff_width" type="real" default_value="10" units="m"
+					description="Width over which the topographic wave drag is progressively turned off"
+					possible_values="any positive real"
+		/>
+
 	</nml_record>
 	<nml_record name="Rayleigh_damping" mode="forward">
 		<nml_option name="config_Rayleigh_damping_coeff" type="real" default_value="1.0e-4" units="s^-1"
@@ -1873,6 +1882,10 @@
             <var name="gotmDissTopOfCell"/>
             <var name="gotmLengthTopOfCell"/>
             <var name="pgf_sal"/>
+            <var name="temp_twd"/>
+            <var name="normalCoeff"/>
+            <var name="tangentialCoeff"/>
+            <var name="topographicWaveDrag"/>
 		</stream>
 
 		<stream name="output"
@@ -2177,6 +2190,9 @@
 			<var name="topo_buoyancy_N1B"/>
 			<var name="bathy_stddev"/>
 			<var name="bed_slope_edges"/>
+			<var name="bottomDepthEdge"/>
+			<var name="lonGradEdge"/>
+			<var name="latGradEdge"/>
 		</stream>
 
 	</streams>
@@ -3158,6 +3174,18 @@
 			description="The integral gradient average per cell"
 			packages="topographicWaveDragPKG"
 		/>
+		<var name="bottomDepthEdge" type="real" dimensions="nEdges" units="unitless"
+			description="bottom depth at the cell edges"
+			packages="topographicWaveDragPKG"
+		/>
+		<var name="lonGradEdge" type="real" dimensions="nEdges" units="unitless"
+			description="Meridional gradient of bathymetry"
+			packages="topographicWaveDragPKG"
+		/>
+		<var name="latGradEdge" type="real" dimensions="nEdges" units="unitless"
+			description="Zonal gradient of bathymetry"
+			packages="topographicWaveDragPKG"
+		/>
 		<!-- diagnostic fields for land-ice fluxes -->
 		<var name="landIceFrictionVelocity" type="real" dimensions="nCells Time" units="m s^-1"
 			description="The friction velocity $u_*$ under land ice"
@@ -3346,6 +3374,22 @@
 		/>
 		<var name="pgf_sal_grad" type="real" dimensions="nEdges Time" units=""
 			description="Gradient of barotropic pressure perturbation due to self-attraction and loading"
+			packages="tidalPotentialForcingPKG"
+		/>
+		<var name="temp_twd" type="real" dimensions="nEdges Time" units=""
+			description="tendency perturbation due to topographic wave drag"
+			packages="tidalPotentialForcingPKG"
+		/>
+		<var name="normalCoeff" type="real" dimensions="nEdges" units=""
+			description="Coefficient multiplied by the normal velocity in the topographic wave drag"
+			packages="tidalPotentialForcingPKG"
+		/>
+		<var name="tangentialCoeff" type="real" dimensions="nEdges" units=""
+			description="Coefficient multiplied by the tangential velocity in the topographic wave drag"
+			packages="tidalPotentialForcingPKG"
+		/>
+		<var name="topographicWaveDrag" type="real" dimensions="nEdges" units=""
+			description="topographic wave drag multiplicative factor"
 			packages="tidalPotentialForcingPKG"
 		/>
 	</var_struct>
