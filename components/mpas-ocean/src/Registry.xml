@@ -992,6 +992,10 @@
 					description="The top drag coefficient if config_use_implicit_top_drag_coeff is false."
 					possible_values="Any positive real number"
 		/>
+		<nml_option name="config_landfast_ice_explicit_topDragCoeff" type="real" default_value="5.36e-3"
+					description="The top drag coefficient used for landfast ice."
+					possible_values="Any positive real number"
+		/>
 		<nml_option name="config_land_ice_flux_ISOMIP_gammaT" type="real" default_value="1e-4" units="m s^-1"
 					description="The constant heat transport velocity through the boundary layer under land ice used in the ISOMIP test cases."
 					possible_values="Any positive real number"
@@ -1640,6 +1644,8 @@
 			<var name="landIceMask"/>
 			<var name="landIcePressure"/>
 			<var name="landIceFraction"/>
+			<var name="landFastIceFraction"/>
+			<var name="landFastIceDragMask"/>
 			<var name="landIceDraft"/>
 			<var name="landIceFloatingMask"/>
 			<var name="landIceFloatingFraction"/>
@@ -1751,7 +1757,8 @@
 			<var name="landIceMask"/>
 			<var name="landIcePressure"/>
 			<var name="landIceFraction"/>
-			<var name="landIceDraft"/>
+			<var name="landFastIceFraction"/>
+			<var name="landFastIceDragMask"/>
 			<var name="landIceFloatingMask"/>
 			<var name="landIceFloatingFraction"/>
 		</stream>
@@ -1852,6 +1859,8 @@
 			<var name="landIcePressure"/>
 			<var name="landIceDraft"/>
 			<var name="landIceFraction"/>
+			<var name="landFastIceFraction"/>
+			<var name="landFastIceDragMask"/>
 			<var name="landIceMask"/>
 			<var name="landIceFloatingMask"/>
 			<var name="landIceFloatingFraction"/>
@@ -2117,6 +2126,8 @@
 			<var name="windSpeed10m"/>
 			<var name="nAccumulatedCoupled"/>
 			<var name="landIceFraction"/>
+			<var name="landFastIceFraction"/>
+			<var name="landFastIceDragMask"/>
 			<var name="landIceMask"/>
 			<var name="landIceFloatingMask"/>
 			<var name="landIceFloatingFraction"/>
@@ -3666,6 +3677,14 @@
 		<!-- Input fields from coupler or initial condition for forcing under land ice -->
 		<var name="landIceFraction" type="real" dimensions="nCells Time" units="1"
 			description="The fraction of each cell covered by land ice"
+			packages="landIcePressurePKG"
+		/>
+		<var name="landFastIceFraction" type="real" dimensions="nCells Time" units="1"
+			description="The fraction of each cell covered by landfast ice"
+			packages="landIcePressurePKG"
+		/>
+		<var name="landFastIceDragMask" type="real" dimensions="nCells Time" units="1"
+			description="Mask indicating where to apply landfast ice drag"
 			packages="landIcePressurePKG"
 		/>
 		<var name="landIceMask" type="integer" dimensions="nCells Time"
